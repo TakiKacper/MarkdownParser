@@ -10,6 +10,7 @@ namespace markdown_parsing
 	struct html_marks
 	{
 		using marks_pair = std::pair<std::string, std::string>;
+		using syntax_highlighting_callback = std::string(*)(const std::string& language_name, const std::string& source, size_t code_begin, size_t code_end);
 
 		std::array<marks_pair, 6> headline_markss = {
 			marks_pair{ "<h1>", "</h1>\n" },
@@ -39,6 +40,7 @@ namespace markdown_parsing
 		marks_pair image_additional_marks = marks_pair("", "");
 
 		std::string horizontal_rule = "<hr>";
+		syntax_highlighting_callback syntax_highlighting = nullptr;
 	};
 
 	static std::string markdown_to_html(const std::string& markdown, const html_marks& marks = {});
@@ -73,6 +75,16 @@ namespace markdown_parsing
 		bool is_paragraph_open = 0;
 
 		std::vector<list> ongoing_lists;
+
+		args(
+			decltype(html_out) _html_out,
+			decltype(markdown) _markdown,
+			decltype(marks) _marks
+		) :
+			html_out(_html_out),
+			markdown(_markdown),
+			marks(_marks) 
+		{};
 	};
 
 	/*
@@ -157,12 +169,7 @@ std::string markdown_parsing::markdown_to_html(const std::string& markdown, cons
 {
 	std::stringstream html_out;
 
-	args _args
-	{
-		.html_out = html_out,
-		.markdown = markdown,
-		.marks = marks
-	};
+	args _args{ html_out, markdown, marks };
 
 	//Parse line
 	while (_args.iterator < _args.markdown.size())
@@ -596,9 +603,21 @@ void markdown_parsing::parse_code_block(args& _args)
 
 	_args.html_out << _args.marks.code_block_marks.first;
 
-	_args.iterator -= 3;
-	dump_block(_args);
-	_args.iterator += 3;
+	if (_args.marks.syntax_highlighting == nullptr)
+	{
+		_args.iterator -= 3;
+		dump_block(_args);
+		_args.iterator += 3;
+	}
+	else
+	{
+		_args.html_out << _args.marks.syntax_highlighting(
+			language_name, 
+			_args.markdown, 
+			_args.block_begin, 
+			_args.iterator - 3
+		);
+	}
 
 	_args.html_out << _args.marks.code_block_marks.second;
 
@@ -620,13 +639,11 @@ void markdown_parsing::parse_list(args& _args, bool ordered)
 		//Calculate diffrence in indentation level between this and previous list
 		size_t indentation_diffrence = _args.line_indentation - (_args.ongoing_lists.size() == 0 ? 0 : _args.ongoing_lists.back().items_indentation);
 
-		_args.ongoing_lists.push_back(
-			{
-				.ordered = ordered,
-				.items_indentation = _args.line_indentation,
-				.indentation_diffrence = indentation_diffrence
-			}
-		);
+		_args.ongoing_lists.push_back({});
+
+		_args.ongoing_lists.back().ordered = ordered;
+		_args.ongoing_lists.back().items_indentation = _args.line_indentation;
+		_args.ongoing_lists.back().indentation_diffrence = indentation_diffrence;
 
 		const html_marks::marks_pair* list_marks = ordered ?
 			&_args.marks.ordered_list_marks :
