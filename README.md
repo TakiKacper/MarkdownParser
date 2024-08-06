@@ -22,6 +22,11 @@ Simple, efficient, single-header C++ (14) markdown to html converison algorithm.
 
 Parser was implemented according to the rules from this website: <https://www.markdownguide.org/cheat-sheet/>
 
+# Pros
+- Fast
+- Customizable
+- Single Header
+
 # Usage
 ```cpp
 #include "markdown_parsing.hpp"
