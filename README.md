@@ -3,7 +3,7 @@ This project is still work-in-progress
 
 # Markdown Parser
 
-Simple, efficient, single-header C++ markdown to html converison algorithm. Following features are supported:
+Simple, efficient, single-header C++ (14) markdown to html converison algorithm. Following features are supported:
 
 - Headings
 - Italic text
