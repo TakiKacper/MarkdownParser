@@ -1,6 +1,6 @@
 #pragma once
 
-//Define Markdown_Parser_Implementation to implement the parser inside the compilation unit
+//Define MARKDOWN_PARSER_IMPLEMENTATION to implement the parser inside the compilation unit
 
 #include <string>
 #include <array>
@@ -9,34 +9,34 @@ namespace markdown_parsing
 {
 	struct html_marks
 	{
-		using closure = std::pair<std::string, std::string>;
+		using marks_pair = std::pair<std::string, std::string>;
 
-		std::array<closure, 6> headline_closures = {
-			closure{ "<h1>", "</h1>\n" },
-			closure{ "<h2>", "</h2>\n" },
-			closure{ "<h3>", "</h3>\n" },
-			closure{ "<h4>", "</h4>\n" },
-			closure{ "<h5>", "</h5>\n" },
-			closure{ "<h6>", "</h6>\n" },
+		std::array<marks_pair, 6> headline_markss = {
+			marks_pair{ "<h1>", "</h1>\n" },
+			marks_pair{ "<h2>", "</h2>\n" },
+			marks_pair{ "<h3>", "</h3>\n" },
+			marks_pair{ "<h4>", "</h4>\n" },
+			marks_pair{ "<h5>", "</h5>\n" },
+			marks_pair{ "<h6>", "</h6>\n" },
 		};
 
-		closure italic_closure = closure{ "<em>", "</em>" };
-		closure bold_closure = closure{ "<strong>", "</strong>" };
-		closure blockquote_closure = closure{ "<blockquote>\n", "</blockquote>\n" };
-		closure highlight_closure = closure{ "<mark>", "</mark>" };
-		closure strikethrough_closure = closure{ "<del>", "</del>" };
+		marks_pair italic_marks = marks_pair{ "<em>", "</em>" };
+		marks_pair bold_marks = marks_pair{ "<strong>", "</strong>" };
+		marks_pair blockquote_marks = marks_pair{ "<blockquote>\n", "</blockquote>\n" };
+		marks_pair highlight_marks = marks_pair{ "<mark>", "</mark>" };
+		marks_pair strikethrough_marks = marks_pair{ "<del>", "</del>" };
 
-		closure ordered_list_closure = closure{ "<ol>", "</ol>" };
-		closure ordered_list_item_closure = closure{ "<li>", "</li>" };
+		marks_pair ordered_list_marks = marks_pair{ "<ol>", "</ol>" };
+		marks_pair ordered_list_item_marks = marks_pair{ "<li>", "</li>" };
 
-		closure unordered_list_closure = closure{ "<ul>", "</ul>" };
-		closure unordered_list_item_closure = closure{ "<li>", "</li>" };
+		marks_pair unordered_list_marks = marks_pair{ "<ul>", "</ul>" };
+		marks_pair unordered_list_item_marks = marks_pair{ "<li>", "</li>" };
 
-		closure code_closure = closure{ "<code>", "</code>" };
-		closure code_block_closure = closure{ "<pre><code>", "</code></pre>" };
+		marks_pair code_marks = marks_pair{ "<code>", "</code>" };
+		marks_pair code_block_marks = marks_pair{ "<pre><code>", "</code></pre>" };
 
-		closure link_additional_closure = closure{ "", "" };
-		closure image_additional_closure = closure("", "");
+		marks_pair link_additional_marks = marks_pair{ "", "" };
+		marks_pair image_additional_marks = marks_pair("", "");
 
 		std::string horizontal_rule = "<hr>";
 	};
@@ -44,7 +44,7 @@ namespace markdown_parsing
 	static std::string markdown_to_html(const std::string& markdown, const html_marks& marks = {});
 }
 
-#ifdef Markdown_Parser_Implementation
+#ifdef MARKDOWN_PARSER_IMPLEMENTATION
 
 #include <vector>
 #include <sstream>
@@ -174,7 +174,7 @@ std::string markdown_parsing::markdown_to_html(const std::string& markdown, cons
 
 	while (_args.blockquote_level != 0)
 	{
-		_args.html_out << _args.marks.blockquote_closure.second;
+		_args.html_out << _args.marks.blockquote_marks.second;
 		_args.blockquote_level--;
 	}
 
@@ -228,16 +228,16 @@ void markdown_parsing::try_close_paragraph(args& _args)
 
 void markdown_parsing::close_all_lists(args& _args)
 {
-	const auto& ordered_list_closure = _args.marks.ordered_list_closure;
-	const auto& ordered_list_item_closure = _args.marks.ordered_list_item_closure;
+	const auto& ordered_list_marks = _args.marks.ordered_list_marks;
+	const auto& ordered_list_item_marks = _args.marks.ordered_list_item_marks;
 
-	const auto& unordered_list_closure = _args.marks.unordered_list_closure;
-	const auto& unordered_list_item_closure = _args.marks.unordered_list_item_closure;
+	const auto& unordered_list_marks = _args.marks.unordered_list_marks;
+	const auto& unordered_list_item_marks = _args.marks.unordered_list_item_marks;
 
 	while (_args.ongoing_lists.size() != 0)
 	{
-		_args.html_out << (_args.ongoing_lists.back().ordered ? ordered_list_item_closure : unordered_list_item_closure).second;	//Close list item
-		_args.html_out << (_args.ongoing_lists.back().ordered ? ordered_list_closure : unordered_list_closure).second;				//Close list
+		_args.html_out << (_args.ongoing_lists.back().ordered ? ordered_list_item_marks : unordered_list_item_marks).second;	//Close list item
+		_args.html_out << (_args.ongoing_lists.back().ordered ? ordered_list_marks : unordered_list_marks).second;				//Close list
 		_args.ongoing_lists.pop_back();
 	};
 }
@@ -298,13 +298,13 @@ void markdown_parsing::parse_line(args& _args)
 
 	while (dashes > _args.blockquote_level)
 	{
-		_args.html_out << _args.marks.blockquote_closure.first;
+		_args.html_out << _args.marks.blockquote_marks.first;
 		_args.blockquote_level++;
 	}
 
 	while (dashes < _args.blockquote_level)
 	{
-		_args.html_out << _args.marks.blockquote_closure.second;
+		_args.html_out << _args.marks.blockquote_marks.second;
 		_args.blockquote_level--;
 	}
 
@@ -449,16 +449,16 @@ void markdown_parsing::parse_headline(args& _args)
 
 	if (level > 6) level = 6;
 
-	auto& closure = _args.marks.headline_closures.at(level - 1);
+	auto& marks_pair = _args.marks.headline_markss.at(level - 1);
 
-	_args.html_out << closure.first;
+	_args.html_out << marks_pair.first;
 
 	_args.block_begin = _args.iterator;
 	while (iter_good && _args.markdown.at(_args.iterator) != '\n') _args.iterator++;
 
 	dump_block(_args);
 
-	_args.html_out << closure.second;
+	_args.html_out << marks_pair.second;
 }
 
 void markdown_parsing::parse_asteriks(args& _args)
@@ -496,23 +496,23 @@ void markdown_parsing::parse_asteriks(args& _args)
 	{
 	case 1:
 	{
-		_args.html_out << _args.marks.italic_closure.first;
+		_args.html_out << _args.marks.italic_marks.first;
 		dump_block(_args);
-		_args.html_out << _args.marks.italic_closure.second;
+		_args.html_out << _args.marks.italic_marks.second;
 	}
 	case 2:
 	{
-		_args.html_out << _args.marks.bold_closure.first;
+		_args.html_out << _args.marks.bold_marks.first;
 		dump_block(_args);
-		_args.html_out << _args.marks.bold_closure.second;
+		_args.html_out << _args.marks.bold_marks.second;
 	}
 	case 3:
 	{
-		_args.html_out << _args.marks.italic_closure.first;
-		_args.html_out << _args.marks.bold_closure.first;
+		_args.html_out << _args.marks.italic_marks.first;
+		_args.html_out << _args.marks.bold_marks.first;
 		dump_block(_args);
-		_args.html_out << _args.marks.bold_closure.second;
-		_args.html_out << _args.marks.italic_closure.second;
+		_args.html_out << _args.marks.bold_marks.second;
+		_args.html_out << _args.marks.italic_marks.second;
 	}
 	}
 
@@ -541,9 +541,9 @@ void markdown_parsing::parse_strikethrough(args& _args)
 		_args.iterator++;
 	}
 
-	_args.html_out << _args.marks.strikethrough_closure.first;
+	_args.html_out << _args.marks.strikethrough_marks.first;
 	_args.html_out << _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin - 2);
-	_args.html_out << _args.marks.strikethrough_closure.second;
+	_args.html_out << _args.marks.strikethrough_marks.second;
 
 	_args.block_begin = _args.iterator--;
 }
@@ -557,9 +557,9 @@ void markdown_parsing::parse_code(args& _args)
 
 	while (iter_good && _args.markdown.at(_args.iterator) != '`') _args.iterator++;
 	
-	_args.html_out << _args.marks.code_closure.first;
+	_args.html_out << _args.marks.code_marks.first;
 	dump_block(_args);
-	_args.html_out << _args.marks.code_closure.second;
+	_args.html_out << _args.marks.code_marks.second;
 
 	_args.block_begin = _args.iterator + 1;
 }
@@ -594,13 +594,13 @@ void markdown_parsing::parse_code_block(args& _args)
 		_args.iterator++;
 	}
 
-	_args.html_out << _args.marks.code_block_closure.first;
+	_args.html_out << _args.marks.code_block_marks.first;
 
 	_args.iterator -= 3;
 	dump_block(_args);
 	_args.iterator += 3;
 
-	_args.html_out << _args.marks.code_block_closure.second;
+	_args.html_out << _args.marks.code_block_marks.second;
 
 	_args.block_begin = _args.iterator;
 }
@@ -628,16 +628,16 @@ void markdown_parsing::parse_list(args& _args, bool ordered)
 			}
 		);
 
-		const html_marks::closure* list_closure = ordered ?
-			&_args.marks.ordered_list_closure :
-			&_args.marks.unordered_list_closure;
+		const html_marks::marks_pair* list_marks = ordered ?
+			&_args.marks.ordered_list_marks :
+			&_args.marks.unordered_list_marks;
 
-		const html_marks::closure* list_item_closure = ordered ?
-			&_args.marks.ordered_list_item_closure :
-			&_args.marks.unordered_list_item_closure;
+		const html_marks::marks_pair* list_item_marks = ordered ?
+			&_args.marks.ordered_list_item_marks :
+			&_args.marks.unordered_list_item_marks;
 
-		_args.html_out << list_closure->first;		 //Open list
-		_args.html_out << list_item_closure->first;  //Open list item
+		_args.html_out << list_marks->first;		 //Open list
+		_args.html_out << list_item_marks->first;  //Open list item
 	}
 	//There are some list and their indentation is greater, then leave those lists
 	else if (_args.ongoing_lists.back().items_indentation > _args.line_indentation)
@@ -649,37 +649,37 @@ void markdown_parsing::parse_list(args& _args, bool ordered)
 		{
 			current_list_indentation -= _args.ongoing_lists.back().indentation_diffrence;
 
-			const html_marks::closure* list_closure	= _args.ongoing_lists.back().ordered ?
-				&_args.marks.ordered_list_closure :
-				&_args.marks.unordered_list_closure;
+			const html_marks::marks_pair* list_marks	= _args.ongoing_lists.back().ordered ?
+				&_args.marks.ordered_list_marks :
+				&_args.marks.unordered_list_marks;
 
-			const html_marks::closure* list_item_closure = _args.ongoing_lists.back().ordered ?
-				&_args.marks.ordered_list_item_closure :
-				&_args.marks.unordered_list_item_closure;
+			const html_marks::marks_pair* list_item_marks = _args.ongoing_lists.back().ordered ?
+				&_args.marks.ordered_list_item_marks :
+				&_args.marks.unordered_list_item_marks;
 
-			_args.html_out << list_item_closure->second;	//Close list item
-			_args.html_out << list_closure->second;			//Close list
+			_args.html_out << list_item_marks->second;	//Close list item
+			_args.html_out << list_marks->second;			//Close list
 
 			_args.ongoing_lists.pop_back();
 		}
 
 		//Push this item
-		const html_marks::closure* list_item_closure = _args.ongoing_lists.back().ordered ?
-			&_args.marks.ordered_list_item_closure :
-			&_args.marks.unordered_list_item_closure;
+		const html_marks::marks_pair* list_item_marks = _args.ongoing_lists.back().ordered ?
+			&_args.marks.ordered_list_item_marks :
+			&_args.marks.unordered_list_item_marks;
 
-		_args.html_out << list_item_closure->second; //Close previous item
-		_args.html_out << list_item_closure->first;	 //Open next item
+		_args.html_out << list_item_marks->second; //Close previous item
+		_args.html_out << list_item_marks->first;	 //Open next item
 	}
 	//Else (there is a list and this item is in the same scope) simply push this item
 	else
 	{
-		const html_marks::closure* list_item_closure = _args.ongoing_lists.back().ordered ?
-			&_args.marks.ordered_list_item_closure :
-			&_args.marks.unordered_list_item_closure;
+		const html_marks::marks_pair* list_item_marks = _args.ongoing_lists.back().ordered ?
+			&_args.marks.ordered_list_item_marks :
+			&_args.marks.unordered_list_item_marks;
 
-		_args.html_out << list_item_closure->second; //Close previous item
-		_args.html_out << list_item_closure->first;	 //Open next item
+		_args.html_out << list_item_marks->second; //Close previous item
+		_args.html_out << list_item_marks->first;	 //Open next item
 	}
 
 	//Skip the '-'
@@ -696,7 +696,7 @@ void markdown_parsing::parse_simple_link(args& _args)
 	while (iter_good && _args.markdown.at(_args.iterator) != '>') _args.iterator++;
 	std::string link = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
 	
-	_args.html_out << _args.marks.link_additional_closure.first;
+	_args.html_out << _args.marks.link_additional_marks.first;
 
 	_args.html_out << "<a href=\"";
 	_args.html_out << link;
@@ -704,7 +704,7 @@ void markdown_parsing::parse_simple_link(args& _args)
 	_args.html_out << link;
 	_args.html_out << "</a>";
 
-	_args.html_out << _args.marks.link_additional_closure.second;
+	_args.html_out << _args.marks.link_additional_marks.second;
 
 	_args.block_begin = _args.iterator;
 }
@@ -738,7 +738,7 @@ void markdown_parsing::parse_named_link(args& _args)
 	std::string link = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
 
 
-	_args.html_out << _args.marks.link_additional_closure.first;
+	_args.html_out << _args.marks.link_additional_marks.first;
 
 	_args.html_out << "<a href=\"";
 	_args.html_out << link;
@@ -746,7 +746,7 @@ void markdown_parsing::parse_named_link(args& _args)
 	_args.html_out << title;
 	_args.html_out << "</a>";
 
-	_args.html_out << _args.marks.link_additional_closure.second;
+	_args.html_out << _args.marks.link_additional_marks.second;
 
 	_args.block_begin = _args.iterator;
 }
@@ -791,7 +791,7 @@ void markdown_parsing::parse_image(args& _args)
 	std::string file = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
 
 
-	_args.html_out << _args.marks.image_additional_closure.first;
+	_args.html_out << _args.marks.image_additional_marks.first;
 
 	_args.html_out << "<img src=\"";
 	_args.html_out << file;
@@ -799,7 +799,7 @@ void markdown_parsing::parse_image(args& _args)
 	_args.html_out << alt_text;
 	_args.html_out << "\">";
 
-	_args.html_out << _args.marks.image_additional_closure.second;
+	_args.html_out << _args.marks.image_additional_marks.second;
 
 	_args.block_begin = _args.iterator;
 }
