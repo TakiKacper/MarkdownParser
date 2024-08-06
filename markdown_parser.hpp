@@ -416,11 +416,11 @@ void markdown_parsing::parse_line(args& _args)
 			_args.block_begin = _args.iterator;
 			parse_list(_args, true);
 		}
-		else if (c == '<')
+		/*else if (c == '<')	Removed to make html injections work
 		{
 			dump_paragraph(_args, false);
 			parse_simple_link(_args);
-		}
+		}*/
 		else if (c == '[')
 		{
 			dump_paragraph(_args, false);
