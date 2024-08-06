@@ -1,4 +1,6 @@
-Simple, single-header markdown to html parser algorithm. Following features are supported:
+# Markdown Parser
+
+Simple, efficient, single-header C++ markdown to html converison algorithm. Following features are supported:
 
 - Headings
 - Italic text
@@ -16,3 +18,34 @@ Simple, single-header markdown to html parser algorithm. Following features are 
 - Html itself
 
 Parser was implemented according to the rules from this website: <https://www.markdownguide.org/cheat-sheet/>
+
+# Usage
+```cpp
+#include "markdown_parsing.hpp"
+
+[...]
+
+std::string markdown_snippet = R"(
+  ## Foo
+  ***Bar***
+)";
+
+//Parse using the default html marks set
+std::cout << markdown_parsing::markdown_to_html(source);
+
+//Create a custom set of html marks, and then override html marks for italic text
+markdown_parsing::html_marks marks;
+marks.italic_marks = { "<em><i>", "</i></em>" };
+
+//Parse using the custom marks set
+std::cout << markdown_parsing::markdown_to_html(source, marks);
+```
+
+# Building
+This parser is implemented as a typical single header library.  
+Once you have your copy of the ``markdown_parser.hpp``, create a file ``markdown_parser.cpp`` inside your project and paste in the following code:
+```cpp
+#define MARKDOWN_PARSER_IMPLEMENTATION
+#include "markdown_parser.hpp"
+```
+Once you configure your building environement to build with ``markdown_parser.cpp`` you can use the parser everywhere inside your project.
