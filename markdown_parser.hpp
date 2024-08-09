@@ -118,7 +118,9 @@ namespace markdown_parsing
 	// assume iterator -> first char after \n
 	static inline void parse_line(args& _args);
 
-	// '#'
+	// #abc
+	// ### cba
+	// also creates anchor with name = heading name with underscores in place of spaces
 	// assumes iterator -> first '#'
 	static inline void parse_headline(args& _args);
 
@@ -458,10 +460,18 @@ void markdown_parsing::parse_headline(args& _args)
 
 	auto& marks_pair = _args.marks.headline_markss.at(level - 1);
 
-	_args.html_out << marks_pair.first;
-
 	_args.block_begin = _args.iterator;
 	while (iter_good && _args.markdown.at(_args.iterator) != '\n') _args.iterator++;
+
+	std::string anchor_name = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
+	for (auto& c : anchor_name)
+		if (c == ' ') c = '-';
+
+	_args.html_out << "<a name=\"";
+	_args.html_out << anchor_name;
+	_args.html_out << "\"></a>";
+
+	_args.html_out << marks_pair.first;
 
 	dump_block(_args);
 
