@@ -62,7 +62,7 @@ namespace markdown_parsing
 
 	struct args
 	{
-		std::stringstream&  html_out;
+		std::stringstream& html_out;
 		const std::string& markdown;
 		const html_marks& marks;
 
@@ -83,7 +83,7 @@ namespace markdown_parsing
 		) :
 			html_out(_html_out),
 			markdown(_markdown),
-			marks(_marks) 
+			marks(_marks)
 		{};
 	};
 
@@ -267,7 +267,7 @@ void markdown_parsing::dump_paragraph(args& _args, bool close_paragraph)
 	//Do not open paragraph if there is one already and if an list is open
 	if (!_args.is_paragraph_open
 		&& _args.ongoing_lists.size() == 0
-	)
+		)
 	{
 		_args.html_out << "<p>";
 		_args.is_paragraph_open = true;
@@ -279,7 +279,7 @@ void markdown_parsing::dump_paragraph(args& _args, bool close_paragraph)
 	{
 		_args.html_out << "</p>";
 		_args.is_paragraph_open = false;
-	}	
+	}
 }
 
 void markdown_parsing::parse_line(args& _args)
@@ -321,12 +321,12 @@ void markdown_parsing::parse_line(args& _args)
 		_args.line_indentation = get_indentation(_args);
 
 	//If there are some opened list and this line in not a list element, then close all ongoing lists
-	if  (iter_good									&& 
-		_args.ongoing_lists.size() != 0				&& 
-		_args.markdown.at(_args.iterator) != '-'	&& 
-		_args.markdown.at(_args.iterator) != '+'	&&
-		_args.markdown.at(_args.iterator) != '*'	&&
-		!is_ordered_list_element(_args))	
+	if (iter_good &&
+		_args.ongoing_lists.size() != 0 &&
+		_args.markdown.at(_args.iterator) != '-' &&
+		_args.markdown.at(_args.iterator) != '+' &&
+		_args.markdown.at(_args.iterator) != '*' &&
+		!is_ordered_list_element(_args))
 	{
 		close_all_lists(_args);
 	}
@@ -357,22 +357,22 @@ void markdown_parsing::parse_line(args& _args)
 			is_first_char = false;
 			ignore_next = true;
 		}
-		else if (c == '#' && is_first_char)						
-		{ 
-			dump_paragraph(_args, true);	
-			parse_headline(_args); 
+		else if (c == '#' && is_first_char)
+		{
+			dump_paragraph(_args, true);
+			parse_headline(_args);
 		}
 		else if ((c == '+' || c == '*') && is_first_char)
 		{
 			parse_list(_args, false);
 		}
 		else if (c == '*')
-		{ 
+		{
 			dump_paragraph(_args, false);
-			parse_asteriks(_args); 
+			parse_asteriks(_args);
 		}
 		else if (c == '`')
-		{ 
+		{
 			size_t amount = count_char('`', _args);
 
 			if (amount == 3)
@@ -385,7 +385,7 @@ void markdown_parsing::parse_line(args& _args)
 			else
 			{
 				_args.iterator -= amount;
-				dump_paragraph(_args, true);
+				dump_paragraph(_args, false);
 				parse_code(_args);
 			}
 		}
@@ -465,6 +465,7 @@ void markdown_parsing::parse_headline(args& _args)
 
 	dump_block(_args);
 
+	_args.iterator--;
 	_args.html_out << marks_pair.second;
 }
 
@@ -475,10 +476,10 @@ void markdown_parsing::parse_asteriks(args& _args)
 	_args.block_begin = _args.iterator;
 
 	while (
-			iter_good && 
-			_args.markdown.at(_args.iterator) != '*' && 
-			_args.markdown.at(_args.iterator) != '\n'
-		) 
+		iter_good &&
+		_args.markdown.at(_args.iterator) != '*' &&
+		_args.markdown.at(_args.iterator) != '\n'
+		)
 		_args.iterator++;
 
 	if (!iter_good || _args.markdown.at(_args.iterator) == '\n')
@@ -498,7 +499,7 @@ void markdown_parsing::parse_asteriks(args& _args)
 	uint8_t level = static_cast<uint8_t>(std::min(left_asterisk, right_asteriks));
 
 	_args.iterator -= right_asteriks;
-	
+
 	switch (level)
 	{
 	case 1:
@@ -506,13 +507,13 @@ void markdown_parsing::parse_asteriks(args& _args)
 		_args.html_out << _args.marks.italic_marks.first;
 		dump_block(_args);
 		_args.html_out << _args.marks.italic_marks.second;
-	}
+	} break;
 	case 2:
 	{
 		_args.html_out << _args.marks.bold_marks.first;
 		dump_block(_args);
 		_args.html_out << _args.marks.bold_marks.second;
-	}
+	} break;
 	case 3:
 	{
 		_args.html_out << _args.marks.italic_marks.first;
@@ -523,7 +524,7 @@ void markdown_parsing::parse_asteriks(args& _args)
 	}
 	}
 
-	_args.iterator += right_asteriks - 1;
+	_args.iterator += right_asteriks;
 	_args.block_begin = _args.iterator;
 
 	while (left_asterisk < right_asteriks)
@@ -563,7 +564,7 @@ void markdown_parsing::parse_code(args& _args)
 	_args.block_begin = _args.iterator;
 
 	while (iter_good && _args.markdown.at(_args.iterator) != '`') _args.iterator++;
-	
+
 	_args.html_out << _args.marks.code_marks.first;
 	dump_block(_args);
 	_args.html_out << _args.marks.code_marks.second;
@@ -584,10 +585,14 @@ void markdown_parsing::parse_code_block(args& _args)
 		_args.markdown.at(_args.iterator) != ' ' &&
 		_args.markdown.at(_args.iterator) != '\n' &&
 		_args.markdown.at(_args.iterator) != '\t'
-	) _args.iterator++;
+		) _args.iterator++;
 
 	std::string language_name = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
-	
+
+	//Skip whitespaces and first newline
+	get_indentation(_args);
+	if (_args.markdown.at(_args.iterator) == '\n') _args.iterator++;
+
 	//Iterate till ```
 	_args.block_begin = _args.iterator;
 
@@ -612,16 +617,16 @@ void markdown_parsing::parse_code_block(args& _args)
 	else
 	{
 		_args.html_out << _args.marks.syntax_highlighting(
-			language_name, 
-			_args.markdown, 
-			_args.block_begin, 
+			language_name,
+			_args.markdown,
+			_args.block_begin,
 			_args.iterator - 3
 		);
 	}
 
 	_args.html_out << _args.marks.code_block_marks.second;
 
-	_args.block_begin = _args.iterator;
+	_args.block_begin = _args.iterator--;
 }
 
 void markdown_parsing::parse_horizontal_rule(args& _args)
@@ -666,7 +671,7 @@ void markdown_parsing::parse_list(args& _args, bool ordered)
 		{
 			current_list_indentation -= _args.ongoing_lists.back().indentation_diffrence;
 
-			const html_marks::marks_pair* list_marks	= _args.ongoing_lists.back().ordered ?
+			const html_marks::marks_pair* list_marks = _args.ongoing_lists.back().ordered ?
 				&_args.marks.ordered_list_marks :
 				&_args.marks.unordered_list_marks;
 
@@ -699,8 +704,6 @@ void markdown_parsing::parse_list(args& _args, bool ordered)
 		_args.html_out << list_item_marks->first;	 //Open next item
 	}
 
-	//Skip the '-'
-	_args.iterator++;
 	_args.block_begin++;
 }
 
@@ -712,7 +715,7 @@ void markdown_parsing::parse_simple_link(args& _args)
 	_args.block_begin = _args.iterator;
 	while (iter_good && _args.markdown.at(_args.iterator) != '>') _args.iterator++;
 	std::string link = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
-	
+
 	_args.html_out << _args.marks.link_additional_marks.first;
 
 	_args.html_out << "<a href=\"";
@@ -735,7 +738,6 @@ void markdown_parsing::parse_named_link(args& _args)
 	_args.block_begin = _args.iterator;
 	while (iter_good && _args.markdown.at(_args.iterator) != ']') _args.iterator++;
 	std::string title = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
-
 
 	if (_args.markdown.at(_args.iterator) != ']') return;
 
