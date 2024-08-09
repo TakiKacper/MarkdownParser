@@ -747,7 +747,7 @@ void markdown_parsing::parse_named_link(args& _args)
 	if (!iter_good || _args.markdown.at(_args.iterator) != '(')
 		return;
 
-	//Skip )
+	//Skip (
 	_args.iterator++;
 	if (!iter_good) return;
 
@@ -755,7 +755,6 @@ void markdown_parsing::parse_named_link(args& _args)
 	_args.block_begin = _args.iterator;
 	while (iter_good && _args.markdown.at(_args.iterator) != ')') _args.iterator++;
 	std::string link = _args.markdown.substr(_args.block_begin, _args.iterator - _args.block_begin);
-
 
 	_args.html_out << _args.marks.link_additional_marks.first;
 
@@ -767,7 +766,7 @@ void markdown_parsing::parse_named_link(args& _args)
 
 	_args.html_out << _args.marks.link_additional_marks.second;
 
-	_args.block_begin = _args.iterator;
+	_args.block_begin = _args.iterator + 1;
 }
 
 void markdown_parsing::parse_image(args& _args)
